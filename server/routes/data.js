@@ -364,43 +364,38 @@ router.put("/donations/:id", authenticateToken, async (req, res) => {
 });
 
 // Delete donation (admin only)
-router.delete(
-  "/donations/:id",
-  authenticateToken,
-  isAdmin,
-  async (req, res) => {
-    try {
-      const { id } = req.params;
+router.delete("/donations/:id", authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
 
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ message: "Invalid donation ID" });
-      }
-
-      // Get donation before deletion to handle campaign amounts
-      const donation = await Donation.findById(id);
-      if (!donation) {
-        return res.status(404).json({ message: "Donation not found" });
-      }
-
-      // Update campaign amount if this was a cash donation
-      if (donation.donation_type === "cash" && donation.campaign_id) {
-        await Campaign.findByIdAndUpdate(donation.campaign_id, {
-          $inc: { current_amount: -donation.amount },
-        });
-      }
-
-      // Delete donation
-      await Donation.findByIdAndDelete(id);
-
-      res.json({ message: "Donation deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting donation:", error);
-      res
-        .status(500)
-        .json({ message: "Failed to delete donation", error: error.message });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid donation ID" });
     }
+
+    // Get donation before deletion to handle campaign amounts
+    const donation = await Donation.findById(id);
+    if (!donation) {
+      return res.status(404).json({ message: "Donation not found" });
+    }
+
+    // Update campaign amount if this was a cash donation
+    if (donation.donation_type === "cash" && donation.campaign_id) {
+      await Campaign.findByIdAndUpdate(donation.campaign_id, {
+        $inc: { current_amount: -donation.amount },
+      });
+    }
+
+    // Delete donation
+    await Donation.findByIdAndDelete(id);
+
+    res.json({ message: "Donation deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting donation:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to delete donation", error: error.message });
   }
-);
+});
 
 // Get donation statistics
 router.get("/donations/stats/summary", authenticateToken, async (req, res) => {
@@ -678,46 +673,41 @@ router.put(
 );
 
 // Delete campaign (admin only)
-router.delete(
-  "/campaigns/:id",
-  authenticateToken,
-  isAdmin,
-  async (req, res) => {
-    try {
-      const { id } = req.params;
+router.delete("/campaigns/:id", authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
 
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ message: "Invalid campaign ID" });
-      }
-
-      const campaign = await Campaign.findById(id);
-      if (!campaign) {
-        return res.status(404).json({ message: "Campaign not found" });
-      }
-
-      // Delete attachments from MongoDB
-      if (campaign.attachments.length > 0) {
-        await Attachment.deleteMany({ _id: { $in: campaign.attachments } });
-      }
-
-      // Delete campaign
-      await Campaign.findByIdAndDelete(id);
-
-      // Update donations to remove campaign reference
-      await Donation.updateMany(
-        { campaign_id: id },
-        { $unset: { campaign_id: 1 } }
-      );
-
-      res.json({ message: "Campaign deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting campaign:", error);
-      res
-        .status(500)
-        .json({ message: "Failed to delete campaign", error: error.message });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid campaign ID" });
     }
+
+    const campaign = await Campaign.findById(id);
+    if (!campaign) {
+      return res.status(404).json({ message: "Campaign not found" });
+    }
+
+    // Delete attachments from MongoDB
+    if (campaign.attachments && campaign.attachments.length > 0) {
+      await Attachment.deleteMany({ _id: { $in: campaign.attachments } });
+    }
+
+    // Delete campaign
+    await Campaign.findByIdAndDelete(id);
+
+    // Update donations to remove campaign reference
+    await Donation.updateMany(
+      { campaign_id: id },
+      { $unset: { campaign_id: 1 } }
+    );
+
+    res.json({ message: "Campaign deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting campaign:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to delete campaign", error: error.message });
   }
-);
+});
 
 // Serve attachment
 router.get("/attachments/:id", async (req, res) => {

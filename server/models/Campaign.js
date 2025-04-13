@@ -47,6 +47,10 @@ const CampaignSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  updated_at: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 export default mongoose.model("Campaign", CampaignSchema);

@@ -16,6 +16,53 @@ code {
     monospace;
 }
 
+/* RWD Utilities */
+@layer utilities {
+  .rwd-p {
+    @apply p-3 xs:p-4 sm:p-5 md:p-6 lg:p-8;
+  }
+
+  .rwd-px {
+    @apply px-3 xs:px-4 sm:px-5 md:px-6 lg:px-8;
+  }
+
+  .rwd-py {
+    @apply py-3 xs:py-4 sm:py-5 md:py-6 lg:py-8;
+  }
+
+  .rwd-mt {
+    @apply mt-3 xs:mt-4 sm:mt-5 md:mt-6 lg:mt-8;
+  }
+
+  .rwd-mb {
+    @apply mb-3 xs:mb-4 sm:mb-5 md:mb-6 lg:mb-8;
+  }
+
+  .rwd-mx {
+    @apply mx-3 xs:mx-4 sm:mx-5 md:mx-6 lg:mx-8;
+  }
+
+  .rwd-my {
+    @apply my-3 xs:my-4 sm:my-5 md:my-6 lg:my-8;
+  }
+
+  .rwd-m {
+    @apply m-3 xs:m-4 sm:m-5 md:m-6 lg:m-8;
+  }
+
+  .rwd-gap {
+    @apply gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8;
+  }
+
+  .rwd-text {
+    @apply text-sm xs:text-base sm:text-lg md:text-xl;
+  }
+
+  .rwd-container {
+    @apply w-full max-w-7xl mx-auto px-3 xs:px-4 sm:px-5 lg:px-8;
+  }
+}
+
 /* Custom animations */
 @keyframes fadeIn {
   from {
@@ -239,4 +286,48 @@ input[type="number"].form-input::-webkit-inner-spin-button {
 
 .step-prev-exit-active {
   animation: slideOutRight 0.3s forwards;
+}
+
+/* Media query for print - hide navigation and optimize layout for printing */
+@media print {
+  nav,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  body {
+    font-size: 12pt;
+    color: #000;
+    background: #fff;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-in-out;
+}
+
+@screen xs {
+  .campaign-card {
+    min-width: 100%;
+  }
 }
