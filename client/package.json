@@ -2,6 +2,7 @@
   "name": "save-gaza",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:5100",
   "dependencies": {
     "@headlessui/react": "^2.2.1",
     "@heroicons/react": "^2.2.0",
