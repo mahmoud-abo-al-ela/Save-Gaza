@@ -18,7 +18,7 @@ const app = express();
 const allowedOrigins = [
   process.env.CORS_ORIGIN,
   'http://localhost:3000',
-  'https://save-gaza-fehz.onrender.com', // Add frontend URL
+  'https://save-gaza.onrender.com', // Add frontend URL
 ].filter(Boolean);
 
 app.use(cors({
