@@ -1,6 +1,5 @@
 import { useState, useEffect, memo } from "react";
 import { Link } from "react-router-dom";
-import { Disclosure } from "@headlessui/react";
 import { campaignService, donationService } from "../services/api";
 import {
   PlusIcon,
@@ -413,135 +412,122 @@ const CampaignsPage = () => {
 
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8">
-      <div className="sm:flex sm:items-center sm:justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
             Campaigns
           </h1>
-          <p className="mt-1 text-sm sm:text-base text-gray-500">
+          <p className="mt-1 text-sm text-gray-500">
             Manage and track all donation campaigns
           </p>
         </div>
-        <div className="mt-4 sm:mt-0 flex space-x-3">
+        <div className="flex flex-wrap gap-2 sm:gap-3">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+            className="inline-flex items-center px-3 sm:px-4 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-200"
             aria-label={showFilters ? "Hide filters" : "Show filters"}
           >
-            <FunnelIcon className="-ml-1 mr-2 h-5 w-5 text-gray-500" />
-            {showFilters ? "Hide Filters" : "Show Filters"}
+            <FunnelIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-gray-500" />
+            <span className="hidden xs:inline">
+              {showFilters ? "Hide Filters" : "Show Filters"}
+            </span>
           </button>
           <Link
             to="/campaigns/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+            className="inline-flex items-center px-3 sm:px-4 py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-200"
           >
-            <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-            Add Campaign
+            <PlusIcon
+              className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2"
+              aria-hidden="true"
+            />
+            <span className="hidden xs:inline">Add Campaign</span>
           </Link>
         </div>
       </div>
 
       {showFilters && (
-        <Disclosure
-          as="div"
-          className="bg-white shadow rounded-lg p-4 sm:p-6 sticky top-4 z-10"
-        >
-          {({ open }) => (
-            <>
-              <Disclosure.Button className="flex justify-between w-full text-left text-lg font-medium text-gray-900 focus:outline-none">
-                <span>Filters</span>
-                <ChevronDownIcon
-                  className={`h-5 w-5 transition-transform duration-200 ${
-                    open ? "rotate-180" : ""
-                  }`}
-                />
-              </Disclosure.Button>
-              <Disclosure.Panel className="mt-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">Filters</h3>
-                  <button
-                    onClick={clearFilters}
-                    className="text-sm text-gray-600 hover:text-gray-900 flex items-center focus:outline-none"
-                    aria-label="Clear all filters"
-                  >
-                    <XMarkIcon className="h-4 w-4 mr-1" />
-                    Clear All
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div>
-                    <label
-                      htmlFor="title"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Campaign Title
-                    </label>
-                    <input
-                      type="text"
-                      name="title"
-                      id="title"
-                      placeholder="Search by title..."
-                      value={filters.title}
-                      onChange={handleFilterChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="status"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Status
-                    </label>
-                    <select
-                      id="status"
-                      name="status"
-                      value={filters.status}
-                      onChange={handleFilterChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
-                    >
-                      <option value="">All Statuses</option>
-                      <option value="active">Active</option>
-                      <option value="completed">Completed</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="startDateFrom"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Start Date (From)
-                    </label>
-                    <input
-                      type="date"
-                      name="startDateFrom"
-                      id="startDateFrom"
-                      value={filters.startDateFrom}
-                      onChange={handleFilterChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="startDateTo"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      End Date (To)
-                    </label>
-                    <input
-                      type="date"
-                      name="startDateTo"
-                      id="startDateTo"
-                      value={filters.startDateTo}
-                      onChange={handleFilterChange}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
-                    />
-                  </div>
-                </div>
-              </Disclosure.Panel>
-            </>
-          )}
-        </Disclosure>
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6 animate-fadeIn">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium">Filters</h3>
+            <button
+              onClick={clearFilters}
+              className="text-sm text-gray-600 hover:text-gray-900 flex items-center transition-colors duration-200"
+            >
+              <XMarkIcon className="h-4 mr-1" />
+              Clear All
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label
+                htmlFor="title"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Campaign Title
+              </label>
+              <input
+                type="text"
+                name="title"
+                id="title"
+                placeholder="Search by title..."
+                value={filters.title}
+                onChange={handleFilterChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm form-input-custom"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="status"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Status
+              </label>
+              <select
+                id="status"
+                name="status"
+                value={filters.status}
+                onChange={handleFilterChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm form-input-custom"
+              >
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+            <div>
+              <label
+                htmlFor="startDateFrom"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Start Date (From)
+              </label>
+              <input
+                type="date"
+                name="startDateFrom"
+                id="startDateFrom"
+                value={filters.startDateFrom}
+                onChange={handleFilterChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm form-input-custom"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="startDateTo"
+                className="block text-sm font-medium text-gray-700"
+              >
+                End Date (To)
+              </label>
+              <input
+                type="date"
+                name="startDateTo"
+                id="startDateTo"
+                value={filters.startDateTo}
+                onChange={handleFilterChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm form-input-custom"
+              />
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
