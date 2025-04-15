@@ -320,6 +320,8 @@ export const campaignService = {
   },
 
   getAttachmentUrl: (attachmentId) => {
+    // This function now just redirects to the backend,
+    // which will redirect to the Cloudinary URL
     const token = localStorage.getItem("token");
     const baseUrl =
       process.env.REACT_APP_API_URL || "http://localhost:5100/api";

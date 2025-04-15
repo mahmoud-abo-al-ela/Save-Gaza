@@ -471,7 +471,9 @@ const DonationsPage = () => {
                         </td>
                         <td className="px-3 sm:px-6 py-4 whitespace-nowrap hidden md:table-cell">
                           <div className="text-xs sm:text-sm text-gray-900 capitalize">
-                            {getCampaignName(donation.campaign_id)}
+                            {donation.campaign_id && donation.campaign_id.title
+                              ? donation.campaign_id.title
+                              : "None"}
                           </div>
                         </td>
                         <td className="px-3 sm:px-6 py-4 whitespace-nowrap hidden lg:table-cell">
@@ -634,7 +636,10 @@ const DonationsPage = () => {
                           <div className="flex items-center mt-1">
                             <BuildingLibraryIcon className="flex-shrink-0 mr-1 h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                             <p className="text-xs sm:text-sm font-medium text-gray-900 truncate capitalize">
-                              {getCampaignName(donation.campaign_id)}
+                              {donation.campaign_id &&
+                              donation.campaign_id.title
+                                ? donation.campaign_id.title
+                                : "None"}
                             </p>
                           </div>
                         </div>

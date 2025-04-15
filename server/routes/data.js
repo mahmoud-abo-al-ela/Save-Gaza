@@ -7,6 +7,7 @@ import Donation from "../models/Donation.js";
 import Campaign from "../models/Campaign.js";
 import User from "../models/User.js";
 import Attachment from "../models/Attachments.js"; // Note the plural name
+import cloudinary from "../config/cloudinary.js";
 
 const router = express.Router();
 
@@ -539,14 +540,26 @@ router.post(
         current_amount: 0,
       });
 
-      // Save attachments to MongoDB with the campaign ID
+      // Upload files to Cloudinary and save attachments with URLs
       const attachmentIds = [];
       if (req.files && req.files.length > 0) {
         for (const file of req.files) {
+          // Convert buffer to base64 string for Cloudinary upload
+          const b64 = Buffer.from(file.buffer).toString("base64");
+          const dataURI = "data:" + file.mimetype + ";base64," + b64;
+
+          // Upload to Cloudinary
+          const result = await cloudinary.uploader.upload(dataURI, {
+            resource_type: "auto",
+            folder: "SupportGaza/attachments",
+          });
+
+          // Create attachment with Cloudinary URL
           const attachment = new Attachment({
-            campaignId: newCampaign._id, // Use the new campaign ID
+            campaignId: newCampaign._id,
             fileName: file.originalname,
-            fileData: file.buffer,
+            fileUrl: result.secure_url,
+            publicId: result.public_id,
             contentType: file.mimetype,
             size: file.size,
           });
@@ -620,9 +633,22 @@ router.put(
       if (remove_attachments && remove_attachments.trim() !== "") {
         try {
           const removeList = JSON.parse(remove_attachments); // Expecting array of attachment IDs
+
+          // Find attachments to be removed to get their Cloudinary public IDs
+          const attachmentsToRemove = await Attachment.find({
+            _id: { $in: removeList },
+          });
+
+          // Delete each file from Cloudinary
+          for (const attachment of attachmentsToRemove) {
+            await cloudinary.uploader.destroy(attachment.publicId);
+          }
+
           attachments = attachments.filter(
             (attachmentId) => !removeList.includes(attachmentId.toString())
           );
+
+          // Delete the attachment records from MongoDB
           await Attachment.deleteMany({ _id: { $in: removeList } });
         } catch (err) {
           console.error("Error removing attachments:", err);
@@ -632,10 +658,22 @@ router.put(
       // Add new attachments
       if (req.files && req.files.length > 0) {
         for (const file of req.files) {
+          // Convert buffer to base64 string for Cloudinary upload
+          const b64 = Buffer.from(file.buffer).toString("base64");
+          const dataURI = "data:" + file.mimetype + ";base64," + b64;
+
+          // Upload to Cloudinary
+          const result = await cloudinary.uploader.upload(dataURI, {
+            resource_type: "auto",
+            folder: "SupportGaza/attachments",
+          });
+
+          // Create attachment with Cloudinary URL
           const attachment = new Attachment({
             campaignId: id,
             fileName: file.originalname,
-            fileData: file.buffer,
+            fileUrl: result.secure_url,
+            publicId: result.public_id,
             contentType: file.mimetype,
             size: file.size,
           });
@@ -753,11 +791,8 @@ router.get("/attachments/:id", async (req, res) => {
       return res.status(404).json({ message: "Attachment not found" });
     }
 
-    res.set({
-      "Content-Type": attachment.contentType,
-      "Content-Disposition": `attachment; filename="${attachment.fileName}"`,
-    });
-    res.send(attachment.fileData);
+    // Redirect to the Cloudinary URL instead of sending the file
+    res.redirect(attachment.fileUrl);
   } catch (error) {
     console.error("Error retrieving attachment:", error);
     res

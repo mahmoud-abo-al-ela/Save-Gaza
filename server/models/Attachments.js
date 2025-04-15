@@ -11,8 +11,12 @@ const AttachmentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  fileData: {
-    type: Buffer, // Store file as binary data
+  fileUrl: {
+    type: String, // Store Cloudinary URL
+    required: true,
+  },
+  publicId: {
+    type: String, // Store Cloudinary public ID
     required: true,
   },
   contentType: {

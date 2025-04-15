@@ -51,10 +51,19 @@ const FileItem = memo(({ file, index, removeFile }) => (
 const AttachmentItem = memo(({ attachment, index, removeAttachment }) => (
   <li className="px-4 py-3 flex items-center justify-between text-sm bg-gray-50 hover:bg-gray-100 transition-colors duration-200 rounded-lg">
     <div className="w-0 flex-1 flex items-center">
-      <DocumentIcon
-        className="flex-shrink-0 h-5 w-5 text-gray-400 mr-2"
-        aria-hidden="true"
-      />
+      {attachment.contentType && attachment.contentType.startsWith("image/") ? (
+        <img
+          src={campaignService.getAttachmentUrl(attachment._id)}
+          alt={attachment.fileName}
+          className="h-8 w-8 object-cover rounded mr-2"
+          loading="lazy"
+        />
+      ) : (
+        <DocumentIcon
+          className="flex-shrink-0 h-5 w-5 text-gray-400 mr-2"
+          aria-hidden="true"
+        />
+      )}
       <span className="flex-1 w-0 truncate">{attachment.fileName}</span>
     </div>
     <div className="ml-4 flex-shrink-0 flex space-x-4">
