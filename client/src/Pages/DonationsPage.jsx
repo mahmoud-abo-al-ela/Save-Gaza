@@ -89,23 +89,36 @@ const DonationsPage = () => {
     }
 
     // Filter by campaign
-    if (filters.campaignId && donation.campaign_id !== filters.campaignId) {
+    if (
+      filters.campaignId &&
+      (!donation.campaign_id ||
+        (typeof donation.campaign_id === "string" &&
+          donation.campaign_id !== filters.campaignId) ||
+        (typeof donation.campaign_id === "object" &&
+          donation.campaign_id._id !== filters.campaignId))
+    ) {
       return false;
     }
 
     // Filter by date range
-    if (
-      filters.startDate &&
-      new Date(donation.date_received) < new Date(filters.startDate)
-    ) {
-      return false;
+    if (filters.startDate) {
+      const startDate = new Date(filters.startDate);
+      // Set the time to the beginning of the day
+      startDate.setHours(0, 0, 0, 0);
+
+      if (new Date(donation.date_received) < startDate) {
+        return false;
+      }
     }
 
-    if (
-      filters.endDate &&
-      new Date(donation.date_received) > new Date(filters.endDate)
-    ) {
-      return false;
+    if (filters.endDate) {
+      const endDate = new Date(filters.endDate);
+      // Set the time to the end of the day to include the entire day
+      endDate.setHours(23, 59, 59, 999);
+
+      if (new Date(donation.date_received) > endDate) {
+        return false;
+      }
     }
 
     return true;
@@ -471,8 +484,12 @@ const DonationsPage = () => {
                         </td>
                         <td className="px-3 sm:px-6 py-4 whitespace-nowrap hidden md:table-cell">
                           <div className="text-xs sm:text-sm text-gray-900 capitalize">
-                            {donation.campaign_id && donation.campaign_id.title
+                            {donation.campaign_id &&
+                            typeof donation.campaign_id === "object" &&
+                            donation.campaign_id.title
                               ? donation.campaign_id.title
+                              : donation.campaign_id
+                              ? getCampaignName(donation.campaign_id)
                               : "None"}
                           </div>
                         </td>
@@ -635,10 +652,13 @@ const DonationsPage = () => {
                           <p className="text-xs text-gray-500">Campaign</p>
                           <div className="flex items-center mt-1">
                             <BuildingLibraryIcon className="flex-shrink-0 mr-1 h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
-                            <p className="text-xs sm:text-sm font-medium text-gray-900 truncate capitalize">
+                            <p className="text-xs sm:text-sm font-medium text-gray-900 capitalize">
                               {donation.campaign_id &&
+                              typeof donation.campaign_id === "object" &&
                               donation.campaign_id.title
                                 ? donation.campaign_id.title
+                                : donation.campaign_id
+                                ? getCampaignName(donation.campaign_id)
                                 : "None"}
                             </p>
                           </div>
@@ -954,7 +974,11 @@ const DonationsPage = () => {
                               Campaign
                             </p>
                             <p className="font-medium text-xs sm:text-sm">
-                              {donationDetails.campaign_id
+                              {donationDetails.campaign_id &&
+                              typeof donationDetails.campaign_id === "object" &&
+                              donationDetails.campaign_id.title
+                                ? donationDetails.campaign_id.title
+                                : donationDetails.campaign_id
                                 ? getCampaignName(donationDetails.campaign_id)
                                 : "None"}
                             </p>
