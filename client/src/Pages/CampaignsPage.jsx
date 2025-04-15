@@ -356,8 +356,8 @@ const CampaignsPage = () => {
           status: "completed",
         };
         await campaignService.update(campaign._id, { status: "completed" });
-        setCampaigns(
-          campaigns.map((c) =>
+        setCampaigns((prevCampaigns) =>
+          prevCampaigns.map((c) =>
             c._id === campaign._id ? { ...c, status: "completed" } : c
           )
         );

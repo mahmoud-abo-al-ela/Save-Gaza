@@ -429,7 +429,7 @@ const DonationFormPage = () => {
                     htmlFor="donor_name"
                     className="block text-sm font-semibold text-gray-700 mb-1 sm:mb-2"
                   >
-                    Donor Name
+                    Donor Name<span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
@@ -438,14 +438,25 @@ const DonationFormPage = () => {
                     <input
                       type="text"
                       id="donor_name"
-                      {...register("donor_name")}
-                      className="shadow-sm block w-full rounded-lg border border-gray-300 pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-3 text-gray-900 placeholder:text-gray-400 focus:border-emerald-500 focus:ring-emerald-500 text-sm transition-colors duration-200"
-                      placeholder="Anonymous"
+                      {...register("donor_name", {
+                        required: "Donor name is required",
+                      })}
+                      className={`shadow-sm block w-full rounded-lg border ${
+                        errors.donor_name ? "border-red-300" : "border-gray-300"
+                      } pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-3 text-gray-900 placeholder:text-gray-400 focus:border-emerald-500 focus:ring-emerald-500 text-sm transition-colors duration-200`}
+                      placeholder="Enter donor name"
                     />
                   </div>
-                  <p className="mt-1 sm:mt-2 text-xs text-gray-500">
-                    Leave empty for anonymous donations
-                  </p>
+                  {errors.donor_name ? (
+                    <p className="mt-1 sm:mt-2 text-sm text-red-600 animate-fadeIn">
+                      {errors.donor_name.message}
+                    </p>
+                  ) : (
+                    <p className="mt-1 sm:mt-2 text-xs text-gray-500">
+                      Full name of the person or organization making the
+                      donation
+                    </p>
+                  )}
                 </div>
 
                 {/* Date Received */}
@@ -491,7 +502,7 @@ const DonationFormPage = () => {
                     </label>
                     <div className="relative rounded-lg shadow-sm">
                       <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
-                        <span className="text-gray-500 text-sm">$</span>
+                        <span className="text-gray-500 text-sm">EGP</span>
                       </div>
                       <input
                         type="number"
@@ -515,7 +526,7 @@ const DonationFormPage = () => {
                         })}
                         className={`block w-full rounded-lg border ${
                           errors.amount ? "border-red-300" : "border-gray-300"
-                        } pl-7 sm:pl-8 pr-3 sm:pr-4 py-2 sm:py-3 text-gray-900 placeholder:text-gray-400 focus:border-emerald-500 focus:ring-emerald-500 text-sm transition-colors duration-200`}
+                        } pl-12 sm:pl-14 pr-3 sm:pr-4 py-2 sm:py-3 text-gray-900 placeholder:text-gray-400 focus:border-emerald-500 focus:ring-emerald-500 text-sm transition-colors duration-200`}
                         placeholder="0.00"
                       />
                     </div>
@@ -655,7 +666,7 @@ const DonationFormPage = () => {
                         Amount
                       </dt>
                       <dd className="text-lg sm:text-xl font-bold text-emerald-600 truncate pl-1 sm:pl-2">
-                        ${parseFloat(watchAmount || 0).toFixed(2)}
+                        {parseFloat(watchAmount || 0).toFixed(2)} EGP
                       </dd>
                       <div className="absolute inset-0 border-l-2 border-transparent group-hover:border-emerald-500 opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                     </div>
