@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { donationService, campaignService } from "../services/api";
 import {
@@ -17,9 +17,137 @@ import {
   EyeIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+  ArrowsUpDownIcon,
+  AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
 import LoadingSpinner from "../Components/common/LoadingSpinner";
 import { toast } from "react-hot-toast";
+
+const SortDropdown = ({ sortConfig, setSortConfig, setCurrentPage }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const handleSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+    setCurrentPage(1);
+    setIsOpen(false);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const getSortLabel = () => {
+    const labels = {
+      donor_name: "Donor Name",
+      donation_type: "Type",
+      amount: "Amount",
+      date_received: "Date",
+      campaign: "Campaign",
+    };
+    return labels[sortConfig.key] || "Sort By";
+  };
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) {
+      return null;
+    }
+    return sortConfig.direction === "asc" ? (
+      <ChevronUpIcon className="h-4 w-4 text-emerald-600 ml-1" />
+    ) : (
+      <ChevronDownIcon className="h-4 w-4 text-emerald-600 ml-1" />
+    );
+  };
+
+  return (
+    <div className="relative inline-block text-left" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-between px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+      >
+        <div className="flex items-center">
+          <AdjustmentsHorizontalIcon className="h-4 w-4 mr-2 text-gray-500" />
+          <span>{getSortLabel()}</span>
+          {getSortIcon(sortConfig.key)}
+        </div>
+      </button>
+
+      {isOpen && (
+        <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10 animate-slideDown">
+          <div className="py-1">
+            <div className="px-3 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
+              Sort By
+            </div>
+            {[
+              { key: "amount", label: "Amount" },
+              { key: "date_received", label: "Date" },
+            ].map((option) => (
+              <button
+                key={option.key}
+                onClick={() => handleSort(option.key)}
+                className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-gray-50 ${
+                  sortConfig.key === option.key
+                    ? "text-emerald-600 font-medium bg-emerald-50"
+                    : "text-gray-700"
+                }`}
+              >
+                {option.label}
+                {getSortIcon(option.key)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const SortableTableHeader = ({ label, column, sortConfig, requestSort }) => {
+  const isActive = sortConfig.key === column;
+  const direction = sortConfig.direction;
+
+  return (
+    <th
+      scope="col"
+      className="px-3 sm:px-6 py-3 text-left text-xs font-medium tracking-wider cursor-pointer select-none"
+      onClick={() => requestSort(column)}
+    >
+      <div
+        className={`flex items-center group ${
+          isActive ? "text-emerald-700" : "text-gray-500 hover:text-gray-700"
+        }`}
+      >
+        <span className="uppercase">{label}</span>
+        <span className="ml-1">
+          {isActive ? (
+            direction === "asc" ? (
+              <ChevronUpIcon className="h-4 w-4 text-emerald-600" />
+            ) : (
+              <ChevronDownIcon className="h-4 w-4 text-emerald-600" />
+            )
+          ) : (
+            <ArrowsUpDownIcon className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+          )}
+        </span>
+      </div>
+    </th>
+  );
+};
 
 const DonationsPage = () => {
   const [donations, setDonations] = useState([]);
@@ -39,6 +167,10 @@ const DonationsPage = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [donationsPerPage] = useState(10);
+  const [sortConfig, setSortConfig] = useState({
+    key: "date_received",
+    direction: "desc",
+  });
 
   // Fetch donations and campaigns
   useEffect(() => {
@@ -67,62 +199,97 @@ const DonationsPage = () => {
     setCurrentPage(1);
   }, [filters]);
 
+  // Sort function
+  const requestSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+    setCurrentPage(1);
+  };
+
   // Apply filters to donations
-  const filteredDonations = donations.filter((donation) => {
-    // Filter by donor name
-    if (
-      filters.donorName &&
-      (!donation.donor_name ||
-        !donation.donor_name
-          .toLowerCase()
-          .includes(filters.donorName.toLowerCase()))
-    ) {
-      return false;
-    }
-
-    // Filter by donation type
-    if (
-      filters.donationType &&
-      donation.donation_type !== filters.donationType
-    ) {
-      return false;
-    }
-
-    // Filter by campaign
-    if (
-      filters.campaignId &&
-      (!donation.campaign_id ||
-        (typeof donation.campaign_id === "string" &&
-          donation.campaign_id !== filters.campaignId) ||
-        (typeof donation.campaign_id === "object" &&
-          donation.campaign_id._id !== filters.campaignId))
-    ) {
-      return false;
-    }
-
-    // Filter by date range
-    if (filters.startDate) {
-      const startDate = new Date(filters.startDate);
-      // Set the time to the beginning of the day
-      startDate.setHours(0, 0, 0, 0);
-
-      if (new Date(donation.date_received) < startDate) {
+  const filteredDonations = donations
+    .filter((donation) => {
+      // Filter by donor name
+      if (
+        filters.donorName &&
+        (!donation.donor_name ||
+          !donation.donor_name
+            .toLowerCase()
+            .includes(filters.donorName.toLowerCase()))
+      ) {
         return false;
       }
-    }
 
-    if (filters.endDate) {
-      const endDate = new Date(filters.endDate);
-      // Set the time to the end of the day to include the entire day
-      endDate.setHours(23, 59, 59, 999);
-
-      if (new Date(donation.date_received) > endDate) {
+      // Filter by donation type
+      if (
+        filters.donationType &&
+        donation.donation_type !== filters.donationType
+      ) {
         return false;
       }
-    }
 
-    return true;
-  });
+      // Filter by campaign
+      if (
+        filters.campaignId &&
+        (!donation.campaign_id ||
+          (typeof donation.campaign_id === "string" &&
+            donation.campaign_id !== filters.campaignId) ||
+          (typeof donation.campaign_id === "object" &&
+            donation.campaign_id._id !== filters.campaignId))
+      ) {
+        return false;
+      }
+
+      // Filter by date range
+      if (filters.startDate) {
+        const startDate = new Date(filters.startDate);
+        // Set the time to the beginning of the day
+        startDate.setHours(0, 0, 0, 0);
+
+        if (new Date(donation.date_received) < startDate) {
+          return false;
+        }
+      }
+
+      if (filters.endDate) {
+        const endDate = new Date(filters.endDate);
+        // Set the time to the end of the day to include the entire day
+        endDate.setHours(23, 59, 59, 999);
+
+        if (new Date(donation.date_received) > endDate) {
+          return false;
+        }
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      // Handle sorting
+      if (sortConfig.key) {
+        // Handle special cases for different data types
+        if (sortConfig.key === "amount") {
+          // Numeric sort for amount
+          const valueA = a[sortConfig.key] || 0;
+          const valueB = b[sortConfig.key] || 0;
+          return sortConfig.direction === "asc"
+            ? valueA - valueB
+            : valueB - valueA;
+        } else if (sortConfig.key === "date_received") {
+          // Date sort
+          const dateA = a[sortConfig.key]
+            ? new Date(a[sortConfig.key])
+            : new Date(0);
+          const dateB = b[sortConfig.key]
+            ? new Date(b[sortConfig.key])
+            : new Date(0);
+          return sortConfig.direction === "asc" ? dateA - dateB : dateB - dateA;
+        }
+      }
+      return 0;
+    });
 
   // Calculate pagination values
   const indexOfLastDonation = currentPage * donationsPerPage;
@@ -232,6 +399,11 @@ const DonationsPage = () => {
           </p>
         </div>
         <div className="flex flex-wrap gap-2 sm:gap-3">
+          <SortDropdown
+            sortConfig={sortConfig}
+            setSortConfig={setSortConfig}
+            setCurrentPage={setCurrentPage}
+          />
           <button
             onClick={toggleViewMode}
             className="inline-flex items-center px-3 sm:px-4 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-200"
@@ -386,6 +558,36 @@ const DonationsPage = () => {
         </div>
       )}
 
+      {/* Show current sort status */}
+      {sortConfig && (
+        <div className="flex items-center bg-emerald-50 p-3 rounded-lg border border-emerald-100 text-sm text-emerald-700 animate-fadeIn">
+          <div className="mr-2 flex-shrink-0">
+            <AdjustmentsHorizontalIcon className="h-5 w-5 text-emerald-500" />
+          </div>
+          <div>
+            Sorted by{" "}
+            <span className="font-medium">
+              {sortConfig.key === "amount"
+                ? "Amount"
+                : sortConfig.key === "date_received"
+                ? "Date"
+                : sortConfig.key}
+            </span>{" "}
+            ({sortConfig.direction === "asc" ? "ascending" : "descending"})
+          </div>
+          {sortConfig.key !== "date_received" && (
+            <button
+              onClick={() =>
+                setSortConfig({ key: "date_received", direction: "desc" })
+              }
+              className="ml-auto text-xs bg-emerald-100 hover:bg-emerald-200 px-2 py-1 rounded text-emerald-700"
+            >
+              Reset
+            </button>
+          )}
+        </div>
+      )}
+
       {filteredDonations.length === 0 ? (
         <div className="bg-white shadow rounded-lg p-6 sm:p-8 text-center animate-fadeIn">
           <p className="text-gray-500 mb-4">No donations match your filters</p>
@@ -406,30 +608,32 @@ const DonationsPage = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th
-                      scope="col"
-                      className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Donor
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Type/Amount
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell"
-                    >
-                      Date
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell"
-                    >
-                      Campaign
-                    </th>
+                    <SortableTableHeader
+                      label="Donor"
+                      column="donor_name"
+                      sortConfig={sortConfig}
+                      requestSort={requestSort}
+                    />
+                    <SortableTableHeader
+                      label="Type/Amount"
+                      column="donation_type"
+                      sortConfig={sortConfig}
+                      requestSort={requestSort}
+                    />
+                    <SortableTableHeader
+                      label="Date"
+                      column="date_received"
+                      sortConfig={sortConfig}
+                      requestSort={requestSort}
+                      className="hidden sm:table-cell"
+                    />
+                    <SortableTableHeader
+                      label="Campaign"
+                      column="campaign"
+                      sortConfig={sortConfig}
+                      requestSort={requestSort}
+                      className="hidden md:table-cell"
+                    />
                     <th
                       scope="col"
                       className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell"
@@ -447,7 +651,10 @@ const DonationsPage = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredDonations.length > 0 ? (
                     currentDonations.map((donation) => (
-                      <tr key={donation._id}>
+                      <tr
+                        key={donation._id}
+                        className="hover:bg-gray-50 transition-colors duration-150"
+                      >
                         <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                           <div className="text-xs sm:text-sm font-medium text-gray-900 capitalize">
                             {donation.donor_name}

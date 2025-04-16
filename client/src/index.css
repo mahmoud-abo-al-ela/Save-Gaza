@@ -67,7 +67,16 @@ code {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
   to {
     opacity: 1;
@@ -76,7 +85,11 @@ code {
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.3s ease-in-out forwards;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.2s ease-in-out;
 }
 
 /* Donation form card hover effect */
@@ -330,4 +343,14 @@ input[type="number"].form-input::-webkit-inner-spin-button {
   .campaign-card {
     min-width: 100%;
   }
+}
+
+/* Hover effect for sortable table headers */
+th.sortable:hover {
+  background-color: rgba(16, 185, 129, 0.05);
+}
+
+/* Transition for sort icons */
+.transition-opacity {
+  transition: opacity 0.15s ease-in-out;
 }

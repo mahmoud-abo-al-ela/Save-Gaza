@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { campaignService, donationService } from "../services/api";
 import {
@@ -12,6 +12,9 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronDownIcon,
+  ChevronUpIcon,
+  ArrowsUpDownIcon,
+  AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
 import LoadingSpinner from "../Components/common/LoadingSpinner";
 import { toast } from "react-hot-toast";
@@ -224,6 +227,103 @@ const CampaignCard = memo(({ campaign, viewCampaignDetails, handleDelete }) => (
   </div>
 ));
 
+const SortDropdown = ({ sortConfig, setSortConfig, setCurrentPage }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const handleSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+    setCurrentPage(1);
+    setIsOpen(false);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const getSortLabel = () => {
+    const labels = {
+      title: "Title",
+      status: "Status",
+      start_date: "Start Date",
+      end_date: "End Date",
+      current_amount: "Amount Raised",
+      goal_amount: "Goal Amount",
+      progress: "Progress",
+    };
+    return labels[sortConfig.key] || "Sort By";
+  };
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) {
+      return null;
+    }
+    return sortConfig.direction === "asc" ? (
+      <ChevronUpIcon className="h-4 w-4 text-emerald-600 ml-1" />
+    ) : (
+      <ChevronDownIcon className="h-4 w-4 text-emerald-600 ml-1" />
+    );
+  };
+
+  return (
+    <div className="relative inline-block text-left" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="inline-flex items-center justify-between px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 min-w-[140px]"
+      >
+        <div className="flex items-center">
+          <AdjustmentsHorizontalIcon className="h-4 w-4 mr-2 text-gray-500" />
+          <span>{getSortLabel()}</span>
+          {getSortIcon(sortConfig.key)}
+        </div>
+      </button>
+
+      {isOpen && (
+        <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10 animate-slideDown">
+          <div className="py-1">
+            <div className="px-3 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
+              Sort By
+            </div>
+            {[
+              { key: "start_date", label: "Start Date" },
+              { key: "end_date", label: "End Date" },
+              { key: "current_amount", label: "Amount Raised" },
+              { key: "goal_amount", label: "Goal Amount" },
+              { key: "progress", label: "Progress" },
+            ].map((option) => (
+              <button
+                key={option.key}
+                onClick={() => handleSort(option.key)}
+                className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-gray-50 ${
+                  sortConfig.key === option.key
+                    ? "text-emerald-600 font-medium bg-emerald-50"
+                    : "text-gray-700"
+                }`}
+              >
+                {option.label}
+                {getSortIcon(option.key)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const CampaignsPage = () => {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -239,6 +339,11 @@ const CampaignsPage = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [campaignsPerPage] = useState(6);
+  const [sortConfig, setSortConfig] = useState({
+    key: "start_date",
+    direction: "desc",
+  });
+  const [activeSortTooltip, setActiveSortTooltip] = useState(null);
 
   useEffect(() => {
     const fetchCampaigns = async () => {
@@ -295,30 +400,78 @@ const CampaignsPage = () => {
     });
   };
 
-  const filteredCampaigns = campaigns.filter((campaign) => {
-    if (
-      filters.title &&
-      !campaign.title.toLowerCase().includes(filters.title.toLowerCase())
-    ) {
-      return false;
-    }
-    if (filters.status && campaign.status !== filters.status) {
-      return false;
-    }
-    if (
-      filters.startDateFrom &&
-      new Date(campaign.start_date) < new Date(filters.startDateFrom)
-    ) {
-      return false;
-    }
-    if (
-      filters.startDateTo &&
-      new Date(campaign.start_date) > new Date(filters.startDateTo)
-    ) {
-      return false;
-    }
-    return true;
-  });
+  const filteredCampaigns = campaigns
+    .filter((campaign) => {
+      if (
+        filters.title &&
+        !campaign.title.toLowerCase().includes(filters.title.toLowerCase())
+      ) {
+        return false;
+      }
+
+      if (filters.status && campaign.status !== filters.status) {
+        return false;
+      }
+
+      if (
+        filters.startDateFrom &&
+        new Date(campaign.start_date) < new Date(filters.startDateFrom)
+      ) {
+        return false;
+      }
+
+      if (
+        filters.startDateTo &&
+        new Date(campaign.start_date) > new Date(filters.startDateTo)
+      ) {
+        return false;
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortConfig.key) {
+        if (
+          sortConfig.key === "current_amount" ||
+          sortConfig.key === "goal_amount"
+        ) {
+          const valueA = a[sortConfig.key] || 0;
+          const valueB = b[sortConfig.key] || 0;
+          return sortConfig.direction === "asc"
+            ? valueA - valueB
+            : valueB - valueA;
+        } else if (sortConfig.key === "progress") {
+          const progressA = a.goal_amount
+            ? (a.current_amount / a.goal_amount) * 100
+            : 0;
+          const progressB = b.goal_amount
+            ? (b.current_amount / b.goal_amount) * 100
+            : 0;
+          return sortConfig.direction === "asc"
+            ? progressA - progressB
+            : progressB - progressA;
+        } else if (
+          sortConfig.key === "start_date" ||
+          sortConfig.key === "end_date"
+        ) {
+          const dateA = a[sortConfig.key]
+            ? new Date(a[sortConfig.key])
+            : new Date(0);
+          const dateB = b[sortConfig.key]
+            ? new Date(b[sortConfig.key])
+            : new Date(0);
+          return sortConfig.direction === "asc" ? dateA - dateB : dateB - dateA;
+        } else {
+          if (a[sortConfig.key] < b[sortConfig.key]) {
+            return sortConfig.direction === "asc" ? -1 : 1;
+          }
+          if (a[sortConfig.key] > b[sortConfig.key]) {
+            return sortConfig.direction === "asc" ? 1 : -1;
+          }
+        }
+      }
+      return 0;
+    });
 
   const indexOfLastCampaign = currentPage * campaignsPerPage;
   const indexOfFirstCampaign = indexOfLastCampaign - campaignsPerPage;
@@ -406,6 +559,14 @@ const CampaignsPage = () => {
     return isNaN(date.getTime()) ? "N/A" : date.toLocaleString();
   };
 
+  const showSortTooltip = (columnName) => {
+    setActiveSortTooltip(columnName);
+  };
+
+  const hideSortTooltip = () => {
+    setActiveSortTooltip(null);
+  };
+
   if (loading) {
     return <LoadingSpinner size="lg" text="Loading campaigns..." />;
   }
@@ -422,6 +583,11 @@ const CampaignsPage = () => {
           </p>
         </div>
         <div className="flex flex-wrap gap-2 sm:gap-3">
+          <SortDropdown
+            sortConfig={sortConfig}
+            setSortConfig={setSortConfig}
+            setCurrentPage={setCurrentPage}
+          />
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="inline-flex items-center px-3 sm:px-4 py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-200"
@@ -530,6 +696,41 @@ const CampaignsPage = () => {
         </div>
       )}
 
+      {sortConfig && (
+        <div className="flex items-center bg-emerald-50 p-3 rounded-lg border border-emerald-100 text-sm text-emerald-700 animate-fadeIn">
+          <div className="mr-2 flex-shrink-0">
+            <AdjustmentsHorizontalIcon className="h-5 w-5 text-emerald-500" />
+          </div>
+          <div>
+            Sorted by{" "}
+            <span className="font-medium">
+              {sortConfig.key === "start_date"
+                ? "Start Date"
+                : sortConfig.key === "end_date"
+                ? "End Date"
+                : sortConfig.key === "current_amount"
+                ? "Amount Raised"
+                : sortConfig.key === "goal_amount"
+                ? "Goal Amount"
+                : sortConfig.key === "progress"
+                ? "Progress"
+                : sortConfig.key}
+            </span>{" "}
+            ({sortConfig.direction === "asc" ? "ascending" : "descending"})
+          </div>
+          {sortConfig.key !== "start_date" && (
+            <button
+              onClick={() =>
+                setSortConfig({ key: "start_date", direction: "desc" })
+              }
+              className="ml-auto text-xs bg-emerald-100 hover:bg-emerald-200 px-2 py-1 rounded text-emerald-700"
+            >
+              Reset
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filteredCampaigns.length > 0 ? (
           currentCampaigns.map((campaign) => (
@@ -542,14 +743,31 @@ const CampaignsPage = () => {
           ))
         ) : (
           <div className="col-span-full text-center py-12 bg-white rounded-lg shadow">
-            <p className="text-gray-500 mb-4 text-lg">No campaigns found</p>
-            <Link
-              to="/campaigns/new"
-              className="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
-            >
-              <PlusIcon className="-ml-1 mr-2 h-6 w-6" aria-hidden="true" />
-              Add First Campaign
-            </Link>
+            {Object.values(filters).some((value) => value) ? (
+              <>
+                <p className="text-gray-500 mb-4 text-lg">
+                  No campaigns match your filters
+                </p>
+                <button
+                  onClick={clearFilters}
+                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 focus:outline-none transition-colors duration-200"
+                >
+                  <XMarkIcon className="mr-2 h-5 w-5" />
+                  Clear filters
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-500 mb-4 text-lg">No campaigns found</p>
+                <Link
+                  to="/campaigns/new"
+                  className="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+                >
+                  <PlusIcon className="-ml-1 mr-2 h-6 w-6" aria-hidden="true" />
+                  Add First Campaign
+                </Link>
+              </>
+            )}
           </div>
         )}
       </div>
