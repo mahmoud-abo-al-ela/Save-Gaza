@@ -292,7 +292,7 @@ const SortDropdown = ({ sortConfig, setSortConfig, setCurrentPage }) => {
       </button>
 
       {isOpen && (
-        <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10 animate-slideDown">
+        <div className="origin-top-right absolute left-0 sm:right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10 animate-slideDown">
           <div className="py-1">
             <div className="px-3 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
               Sort By

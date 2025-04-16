@@ -88,7 +88,7 @@ const SortDropdown = ({ sortConfig, setSortConfig, setCurrentPage }) => {
       </button>
 
       {isOpen && (
-        <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10 animate-slideDown">
+        <div className="origin-top-right absolute left-0 sm:right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10 animate-slideDown">
           <div className="py-1">
             <div className="px-3 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
               Sort By
@@ -129,7 +129,7 @@ const SortableTableHeader = ({ label, column, sortConfig, requestSort }) => {
     >
       <div
         className={`flex items-center group ${
-          isActive ? "text-emerald-700" : "text-gray-500 hover:text-gray-700"
+          isActive ? "text-emerald-700" : " text-gray-700"
         }`}
       >
         <span className="uppercase">{label}</span>
@@ -141,7 +141,7 @@ const SortableTableHeader = ({ label, column, sortConfig, requestSort }) => {
               <ChevronDownIcon className="h-4 w-4 text-emerald-600" />
             )
           ) : (
-            <ArrowsUpDownIcon className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <ArrowsUpDownIcon className="h-4 w-4 text-gray-400 opacity-100 transition-opacity" />
           )}
         </span>
       </div>
@@ -608,15 +608,15 @@ const DonationsPage = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <SortableTableHeader
-                      label="Donor"
-                      column="donor_name"
-                      sortConfig={sortConfig}
-                      requestSort={requestSort}
-                    />
+                    <th
+                      scope="col"
+                      className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Donor
+                    </th>
                     <SortableTableHeader
                       label="Type/Amount"
-                      column="donation_type"
+                      column="amount"
                       sortConfig={sortConfig}
                       requestSort={requestSort}
                     />
@@ -627,13 +627,12 @@ const DonationsPage = () => {
                       requestSort={requestSort}
                       className="hidden sm:table-cell"
                     />
-                    <SortableTableHeader
-                      label="Campaign"
-                      column="campaign"
-                      sortConfig={sortConfig}
-                      requestSort={requestSort}
-                      className="hidden md:table-cell"
-                    />
+                    <th
+                      scope="col"
+                      className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell"
+                    >
+                      Campaign
+                    </th>
                     <th
                       scope="col"
                       className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell"
